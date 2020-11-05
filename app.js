@@ -6,15 +6,20 @@ const morgan = require('morgan'); //A third party middleware
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 
-//creating the app variable is by conventions and by calling express we add a bunch of functions/methods to the app variable
+//creating the app variable is by conventions and by calling express we add a bunch of functions/methods to the app variabledffsd
 const app = express();
 
 //1. MIDDLEWARES
-app.use(morgan('dev'));
+if (process.env.NODE_ENV === 'development') {
+    app.use(morgan('dev'));
+}
+
 app.use(express.json());
 
+app.use(express.static(`${__dirname}/public`));
+
 //2. ROUTE HANDLERS
-//Relocated to Routes Folders
+//Relocated to Controllers
 
 
 //3. ROUTES
