@@ -14,7 +14,7 @@ if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
 
-app.use(express.json());
+app.use(express.json()); //using this middleware gives us access to the body of the request
 
 app.use(express.static(`${__dirname}/public`));
 
@@ -22,11 +22,11 @@ app.use(express.static(`${__dirname}/public`));
 //Relocated to Controllers
 
 
-//3. ROUTES
+//3. ROUTES                                                                                                                               
 // app.get('/api/v1/tours', getTours)
 // app.post('/api/v1/tours', createTour)
 
-app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/tours', tourRouter);//In case of routers which are a middleware we need to route this way
 app.use('/api/v1/users', userRouter);
 
 //4. SERVER
