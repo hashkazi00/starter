@@ -62,7 +62,8 @@ exports.getTours = async (req, res) => {
         // }
 
         //Execute query
-        const features = new APIFeatures(Tour.find(), req.query).filter().sort().limiting().paginate();
+        const features =
+            new APIFeatures(Tour.find(), req.query).filter().sort().limiting().paginate();
         const tours = await features.query;
 
         // console.log(req.query, queryObj);
@@ -151,6 +152,107 @@ exports.deleteTour = async (req, res) => {
         res.status(400).json({
             "status": "failed",
             "message": "Invalid Data Sent"
+        })
+    }
+}
+
+exports.getTourStats = async (req, res) => {
+    try {
+        const stats = await Tour.aggregate([
+            {
+                $match: {
+                    ratingsAverage: { $gte: 4.5 }
+                }
+            },
+            {
+                $group: {
+                    // _id: '$difficulty',
+                    _id: { $toUpper: '$difficulty' },
+                    numTours: { $sum: 1 },
+                    numRatings: { $sum: '$ratingsQuantity' },
+                    avgRating: { $avg: '$ratingsAverage' },
+                    minPrice: { $min: '$price' },
+                    maxPrice: { $max: '$price' }
+                }
+            },
+            {
+                $sort: {
+                    maxPrice: -1
+                }
+            }
+        ])
+
+        res.status(201).json({
+            "status": "success",
+            "data": {
+                stats
+            }
+        });
+
+    } catch (err) {
+        res.status(400).json({
+            "status": "failed",
+            "message": err
+        })
+    }
+}
+
+exports.getMonthlyPlan = async (req, res) => {
+    try {
+        const year = req.params.year * 1;
+
+        const plan = await Tour.aggregate([
+            {
+                $unwind: '$startDates'
+            },
+            {
+                $match: {
+                    startDates: {
+                        $gte: new Date(`${year}-01-01`),
+                        $lte: new Date(`${year}-12-31`)
+                    }
+                }
+            },
+            {
+                $group: {
+                    //$month is a special mongoidb operator more on it in the docs 
+                    _id: { $month: '$startDates' },
+                    numTours: { $sum: 1 },
+                    //$push is a special mongo operator that creates an array and pushes the necessary data for a particular kind of documents into it 
+                    tours: { $push: '$name' }
+                }
+            },
+            //addfields stage is used to add anew field
+            {
+                $addFields: {
+                    month: '$_id'
+                }
+            },
+            {
+                $project: {
+                    _id: 0
+                }
+            },
+            {
+                $sort: {
+                    // month: 1
+                    numTours: -1
+                }
+            },
+            {
+                $limit: 12
+            }
+        ]);
+        res.status(201).json({
+            "status": "success",
+            "data": {
+                plan
+            }
+        });
+    } catch (err) {
+        res.status(400).json({
+            "status": "failed",
+            "message": err
         })
     }
 }
