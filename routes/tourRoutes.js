@@ -9,6 +9,7 @@ const router = express.Router(); //1. create a router
 
 
 //2. Manipulate the router object, note that .route() is a middleware 
+router.route('/top-5-cheap').get(tourController.aliased, tourController.getTours);
 router.route('/').get(tourController.getTours).post(tourController.createTour);
 
 router.route('/:id').get(tourController.getTourById).patch(tourController.updateTour).delete(tourController.deleteTour)
