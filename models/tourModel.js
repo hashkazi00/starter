@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
 
 const tourSchema = new mongoose.Schema({
     name: {
@@ -47,9 +48,58 @@ const tourSchema = new mongoose.Schema({
         default: Date.now(),
         select: false
     },
-    startDates: [Date]//Whatever we pass mongodb will try to prase it as a Date, if it can't it will throw an erroe
+    startDates: [Date],//Whatever we pass mongodb will try to prase it as a Date, if it can't it will throw an erroe
+    slug: String,
+    secretTour: {
+        type: Boolean,
+        default: false
+    }
 
+}, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 });
+
+tourSchema.virtual('durationWeeks').get(function () {
+    return this.duration / 7;
+})
+
+tourSchema.pre('save', function (next) {
+    // console.log(this)
+    this.slug = slugify(this.name, { lower: true });
+    next();
+})
+
+tourSchema.pre(/^find/, function (next) {
+    this.find({ secretTour: { $ne: true } });
+    // console.log(this);
+    this.start = Date.now();
+    next();
+})
+
+tourSchema.post(/^find/, function (docs, next) {
+    console.log(`Query took ${Date.now() - this.start} milliseconds`)
+    // console.log(docs);
+    next();
+})
+
+tourSchema.pre('aggregate', function (next) {
+    this.pipeline().unshift({ $match: { secretTour: { $ne: true } } })
+    console.log(this.pipeline());
+    next();
+})
+
+
+///the below code is to show that multiple pre or post middleware to a hook(event)
+// tourSchema.pre('save', function (next) {
+//     console.log("Kar du save??? bhaiiii");
+//     next();
+// })
+
+// tourSchema.post('save', function (doc, next) {
+//     console.log(this);
+//     next();
+// })
 
 const Tour = new mongoose.model('Tour', tourSchema);
 
