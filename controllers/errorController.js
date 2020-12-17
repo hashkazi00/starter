@@ -23,6 +23,9 @@ const handleValidationErrorDB = err => {
     return new AppError(message, 400)
 }
 
+const handleJWTError = () => new AppError('Invalid Token! Please Login Again.', 401);
+const handleJWTExpiredError = () => new AppError('Token Expired! Please Login Again.', 401);
+
 
 ////Environtal variable based error definition
 //1
@@ -66,7 +69,7 @@ module.exports = (err, req, res, next) => {
 
         sendErrorDev(err, res)
 
-    } else if (process.env.NODE_ENV === 'production') {
+    } else if (process.env.NODE_ENV === 'production') { //only in production
 
         let error = { ...err } //good practice to not directly mutate the parameters
         // console.log(error)
@@ -82,6 +85,9 @@ module.exports = (err, req, res, next) => {
         if (err.name === 'ValidationError') {
             error = handleValidationErrorDB(error);
         }
+        if(err.name === 'JsonWebTokenError') error = handleJWTError();
+
+        if(err.name === 'TokenExpiredError') error = handleJWTExpiredError();
 
         sendErrorProd(error, res)
     }

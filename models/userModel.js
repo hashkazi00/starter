@@ -34,7 +34,8 @@ const UserSchema = new mongoose.Schema({
             },
             message:"The passwords do not match"
         }
-    }
+    },
+    passwordChangedAt: Date
 });
 
 UserSchema.pre('save', async function(next) {
@@ -56,6 +57,14 @@ UserSchema.methods.correctPassword = async function(candidatePassword, userPassw
     //this is the only way of chceking if paswseord is valid as our candidate passowrd is a normal string and userPassword is an encrypted password string 
 }
 
-const UserModel = mongoose.model('User', UserSchema);
+UserSchema.methods.changedPasswordAfter = function(JWTTimestamp){
+    if(this.passwordChangedAt){
+        const changedTimeStamp = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
+        return JWTTimestamp < changedTimeStamp; 
+    }
+    return false; //default in case user does not change password
+}
+
+const UserModel = mongoose.model('User', UserSchema); 
 
 module.exports = UserModel;  
