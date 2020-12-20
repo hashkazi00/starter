@@ -6,6 +6,8 @@ const { check } = require('prettier');
 const { promisify } = require('util')
 
 const AppError = require('./../utils/appError');
+const sendEmail = require('./../utils/email');
+
 
 const signToken = id => {
     return jwt.sign({id}, process.env.JWT_SECRET,  {expiresIn: process.env.JWT_EXPIRESIN});
@@ -107,3 +109,49 @@ exports.restrictTo = (...roles) => {
         next();
     }
 };
+
+exports.forgotPassword =  catchAsync( async (req, res, next) => {
+    //1. Extract the user from the email received
+    const user = await User.findOne({email: req.body.email});
+
+    if(!user){
+        return next(new AppError('There is no user as such', 404));
+    }
+
+    //2. Create a random reset token which will then act as a a temporary password for our user, as we have to the random creation and then encryption to be done, we separate the concerns 
+
+    const resetToken = user.createResetPasswordToken();
+    console.log(resetToken);
+    // await user.save();//this won't work as we have validators in our schema the validation will fail upon saving the items craeted due to instance method above
+
+    await user.save({ validateBeforeSave: false});
+
+    // 3. Send resettoken to user via mail
+    const resetURL = `${req.protocol}://${req.get('host')}/api/v1/users/resetPassword/${resetToken}`;
+
+    const message = `Forgot your password? Submit a patch resquest with your new password and confirmPassword to: ${resetURL}. If this was a mistake please ignore the URL.`;
+    
+    try{
+
+        await sendEmail({
+        email:user.email,
+        subject:'Your password request token is valid for 10 minutes',
+        message
+        })
+
+        res.status(200).json({
+        status:'success',
+        message: 'Token sent to email!!!'
+        })
+
+    }catch(err){
+        user.passwordResetToken = undefined;
+        user.passwordResetExpires = undefined;
+        await user.save({ validateBeforeSave: false});
+
+        return next(new AppError('Error Sending Email Please Try Again Later', 500)); 
+    }
+
+});
+
+exports.resetPassword = (req, res, next) => {};
