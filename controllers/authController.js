@@ -19,7 +19,8 @@ exports.signup = catchAsync(async (req, res, next) => {
         email:req.body.email,
         password:req.body.password,
         confirmPassword: req.body.confirmPassword,
-        passwordChangedAt:req.body.passwordChangedAt
+        passwordChangedAt:req.body.passwordChangedAt,
+        role:req.body.role 
     })
 
     //JWT , the payload is the auto generated id , 
@@ -96,3 +97,13 @@ exports.signup = catchAsync(async (req, res, next) => {
         req.user = currentUser;
         next();
     })
+
+
+exports.restrictTo = (...roles) => {
+    return (req, res, next) => {
+        if(!roles.includes(req.user.role)){
+            return next(new AppError('You do not have permission!', 403));
+        }
+        next();
+    }
+};

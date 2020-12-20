@@ -16,7 +16,7 @@ router.route('/get-monthly-plan/:year').get(tourController.getMonthlyPlan);
 router.route('/top-5-cheap').get(tourController.aliased, tourController.getTours);
 router.route('/').get(authController.protect, tourController.getTours).post(tourController.createTour);
 
-router.route('/:id').get(tourController.getTourById).patch(tourController.updateTour).delete(tourController.deleteTour)
+router.route('/:id').get(tourController.getTourById).patch(tourController.updateTour).delete(authController.protect, authController.restrictTo('admin', 'lead-guide'), tourController.getTours)
 
 //3. Export the manipulated router object
 module.exports = router;
