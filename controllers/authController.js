@@ -1,7 +1,9 @@
-const User = require('./../models/userModel');
+const crypto = require('crypto')
 const jwt = require('jsonwebtoken');
 
+const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
+
 const { check } = require('prettier');
 const { promisify } = require('util')
 
@@ -154,4 +156,38 @@ exports.forgotPassword =  catchAsync( async (req, res, next) => {
 
 });
 
-exports.resetPassword = (req, res, next) => {};
+exports.resetPassword = catchAsync(async (req, res, next) => {
+    //1. Get user based on the token + checking if token has not expired
+    const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
+    const user = await User.findOne(
+        {passwordResetToken: hashedToken,
+        passwordResetExpires:{ $gt: Date.now()}
+    });
+
+    if(!user){
+        return next(new AppError('Token invalid or expired', 400));
+    }
+
+    user.password = req.body.password;
+    user.confirmPassword = req.body.confirmPassword;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+
+    await user.save();
+
+    // 2. Change the passwordChangedAtProperty using mongoose middleware, in the models
+
+    // 3. Logen the user In by signing the token
+
+    const token = signToken(user._id);
+
+    res.status(200).json({
+        status:"success",
+        token 
+    })
+
+
+
+
+});

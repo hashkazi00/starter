@@ -1,4 +1,4 @@
-const crypto = require('crypto')
+const crypto = require('crypto') 
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
@@ -43,7 +43,7 @@ const UserSchema = new mongoose.Schema({
     },
     passwordChangedAt: Date,
     passwordResetToken: String,
-    passwordResetExpires:Date
+    passwordResetExpires: Date
 });
 
 UserSchema.pre('save', async function(next) {
@@ -56,6 +56,16 @@ UserSchema.pre('save', async function(next) {
 
     //remove the confirmPassword field
     this.confirmPassword = undefined;
+})
+
+UserSchema.pre('save', async function(next){
+    // only run this function if the password was actually modified
+    if(!this.isModified('password') || this.isNew ) return next(); 
+
+    this.passwordChangedAt = Date.now() - 1000;
+
+    next();
+
 })
 
 ///Instance method tyo check if the user entered right password, which will then be available fro every document throughout our application
