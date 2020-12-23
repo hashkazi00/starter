@@ -186,8 +186,29 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
         status:"success",
         token 
     })
+});
 
+exports.updatePassword = catchAsync( async (req, res, next ) => {
+    //Get the user from the mongodb collection
+    const user = await User.findById(req.user.id).select('+password');
 
+    //Chcek if the recived password is correct for the user 
+    if(!(await user.correctPassword(req.body.passwordCurrent, user.password))){
+        return next(new AppError('Password Incorrect!!', 401))
+    }
 
+    // Set the new password
+    user.password = req.body.password;
+    user.confirmPassword = req.body.confirmPassword;
+    await user.save();
+
+    //send the token
+
+    const token = signToken(user._id);
+
+    res.status(200).json({
+        status:"success",
+        token 
+    })
 
 });
