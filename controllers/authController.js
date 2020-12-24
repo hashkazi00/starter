@@ -15,6 +15,19 @@ const signToken = id => {
     return jwt.sign({id}, process.env.JWT_SECRET,  {expiresIn: process.env.JWT_EXPIRESIN});
 };
 
+const createSendToken = (user, statusCode, res) => {
+    const token = signToken(user._id);
+
+    user.password = undefined;
+    res.status(statusCode).json({
+        status:'success',
+        token,
+        data:{
+            user
+        }
+    })
+};
+
 exports.signup = catchAsync(async (req, res, next) => {
     // const newUser = await User.create(req.body); //this way anyone cann set admin row as true
     //We only want to allow a few fields to be entered by the user 
@@ -27,15 +40,9 @@ exports.signup = catchAsync(async (req, res, next) => {
         role:req.body.role 
     })
 
-    //JWT , the payload is the auto generated id , 
-    const token = signToken(newUser._id);
-    res.status(201).json({
-        status:'success',
-        token,
-        data:{
-            user: newUser
-        }
-    })
+    //JWT , the payload is the auto generated id ,
+    
+    createSendToken(newUser, 201, res);
 } );
 
     exports.login = catchAsync( async (req,res,next)=> {
@@ -60,11 +67,8 @@ exports.signup = catchAsync(async (req, res, next) => {
         }
 
         // 4) If everything okay send token to client
-        const token = signToken(user._id);
-        res.status(201).json({
-            status:"success",
-            token
-        })
+        createSendToken(user, 201, res);
+
     })
 
     exports.protect = catchAsync( async (req, res, next) => {
@@ -180,12 +184,8 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 
     // 3. Logen the user In by signing the token
 
-    const token = signToken(user._id);
+    createSendToken(user, 200, res);
 
-    res.status(200).json({
-        status:"success",
-        token 
-    })
 });
 
 exports.updatePassword = catchAsync( async (req, res, next ) => {
@@ -204,11 +204,7 @@ exports.updatePassword = catchAsync( async (req, res, next ) => {
 
     //send the token
 
-    const token = signToken(user._id);
+    createSendToken(user, 200, res);
 
-    res.status(200).json({
-        status:"success",
-        token 
-    })
 
 });
