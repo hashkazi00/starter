@@ -43,7 +43,12 @@ const UserSchema = new mongoose.Schema({
     },
     passwordChangedAt: Date,
     passwordResetToken: String,
-    passwordResetExpires: Date
+    passwordResetExpires: Date,
+    active:{
+        type:Boolean,
+        default:true,
+        select:false
+    }
 });
 
 UserSchema.pre('save', async function(next) {
@@ -66,6 +71,11 @@ UserSchema.pre('save', async function(next){
 
     next();
 
+})
+
+UserSchema.pre(/^find/, function(next){
+    this.find({ active: { $ne:false } });
+    next();
 })
 
 ///Instance method tyo check if the user entered right password, which will then be available fro every document throughout our application
