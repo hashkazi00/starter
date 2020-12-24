@@ -23,7 +23,7 @@ if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
 
-app.use(express.json()); //using this middleware gives us access to the body of the request
+app.use(express.json({limit: '10kb'})); //using this middleware gives us access to the body of the request
 
 app.use(express.static(`${__dirname}/public`));
 
