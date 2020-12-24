@@ -2,6 +2,7 @@ const express = require('express');
 
 const morgan = require('morgan'); //A third party middleware
 const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 
 const appError = require('./utils/appError');
 
@@ -15,6 +16,9 @@ const userRouter = require('./routes/userRoutes');
 const app = express();
 
 //1. MIDDLEWARES
+
+app.use(helmet());
+
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
