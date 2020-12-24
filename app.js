@@ -1,6 +1,7 @@
 const express = require('express');
 
 const morgan = require('morgan'); //A third party middleware
+const rateLimit = require('express-rate-limit');
 
 const appError = require('./utils/appError');
 
@@ -21,6 +22,14 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json()); //using this middleware gives us access to the body of the request
 
 app.use(express.static(`${__dirname}/public`));
+
+const limiter = rateLimit({
+    max:100,
+    windowMs: 60 * 60 * 1000,
+    message: 'Too many requests pls try again later after an hour!!'
+})
+
+app.use('/api', limiter)
 
 //2. ROUTE HANDLERS
 //Relocated to Controllers
