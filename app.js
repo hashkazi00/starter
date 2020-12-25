@@ -3,6 +3,7 @@ const express = require('express');
 const morgan = require('morgan'); //A third party middleware
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
 
 const appError = require('./utils/appError');
 
@@ -11,6 +12,7 @@ const globalErrorHandler = require('./controllers/errorController');
 //Load User Defined modules 
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const { mongo } = require('mongoose');
 
 //creating the app variable is by conventions and by calling express we add a bunch of functions/methods to the app variabledffsd
 const app = express();
@@ -24,6 +26,13 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 app.use(express.json({limit: '10kb'})); //using this middleware gives us access to the body of the request
+
+//Data Sanitization, here because in the step we put the body data on the request
+
+//1. Data Sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+//2. Data Sanitization Against XSS
 
 app.use(express.static(`${__dirname}/public`));
 
