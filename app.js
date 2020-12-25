@@ -38,7 +38,8 @@ app.use(mongoSanitize());
 app.use(xss()); //Not so necessary as we already have mongo schema validators in place 
 
 //Prevent paramter pollution (duplicate parameter fields in url)
-app.use(hpp());
+// app.use(hpp());
+app.use(hpp({whitelist:['duration', 'ratingsAverage', 'ratingsQuantity', 'maxGoupSize', 'price', 'difficulty']}));
 
 app.use(express.static(`${__dirname}/public`));
 
