@@ -5,6 +5,7 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
+const hpp = require('hpp');
 
 const appError = require('./utils/appError');
 
@@ -35,6 +36,9 @@ app.use(mongoSanitize());
 
 //2. Data Sanitization Against XSS
 app.use(xss()); //Not so necessary as we already have mongo schema validators in place 
+
+//Prevent paramter pollution (duplicate parameter fields in url)
+app.use(hpp());
 
 app.use(express.static(`${__dirname}/public`));
 
