@@ -4,6 +4,7 @@ const morgan = require('morgan'); //A third party middleware
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
 
 const appError = require('./utils/appError');
 
@@ -33,6 +34,7 @@ app.use(express.json({limit: '10kb'})); //using this middleware gives us access 
 app.use(mongoSanitize());
 
 //2. Data Sanitization Against XSS
+app.use(xss()); //Not so necessary as we already have mongo schema validators in place 
 
 app.use(express.static(`${__dirname}/public`));
 
