@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const User = require('./userModel');
 
 const tourSchema = new mongoose.Schema({
     name: {
@@ -94,7 +95,8 @@ const tourSchema = new mongoose.Schema({
             description: String,
             day:Number
         }
-    ]
+    ],
+    guides:Array
 
 }, {
     toJSON: { virtuals: true },
@@ -127,6 +129,13 @@ tourSchema.post(/^find/, function (docs, next) {
 tourSchema.pre('aggregate', function (next) {
     this.pipeline().unshift({ $match: { secretTour: { $ne: true } } })
     console.log(this.pipeline());
+    next();
+})
+
+//MiddleWare to embed guides in the tour document.
+tourSchema.pre('save', async function(next){
+    const guidesPromises =  this.guides.map( async id => await User.findById(id)); //the guidesPromises array is going to be an array full of promises
+    this.guides = await Promise.all(guidesPromises); //overwriting the guides array of the current document
     next();
 })
 
