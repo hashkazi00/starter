@@ -70,7 +70,31 @@ const tourSchema = new mongoose.Schema({
     secretTour: {
         type: Boolean,
         default: false
-    }
+    },
+    startLocation:{
+        //note that this does not take schematype options instead it is the embebbed document iteslt
+        type:{
+            type:String, 
+            default:'Point',
+            enum:['Point']
+        },
+        coordinates: [Number],
+        address: String, 
+        description: String
+    },
+    locations:[
+        {
+            type:{
+            type:String, 
+            default:'Point',
+            enum:['Point']
+            },
+            coordinates: [Number],
+            address: String, 
+            description: String,
+            day:Number
+        }
+    ]
 
 }, {
     toJSON: { virtuals: true },
