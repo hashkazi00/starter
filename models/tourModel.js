@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-const User = require('./userModel');
+// const User = require('./userModel');
 
 const tourSchema = new mongoose.Schema({
     name: {
@@ -96,7 +96,12 @@ const tourSchema = new mongoose.Schema({
             day:Number
         }
     ],
-
+    guides:[
+         {
+             type:mongoose.Schema.ObjectId,
+             ref: 'User' //ref is where magic happens, establishes aref between tours and users dataset
+         }
+    ]
 }, {
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
